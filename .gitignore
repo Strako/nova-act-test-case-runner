@@ -2,5 +2,4 @@
 env/lib/**
 .env
 **/.env
-**/propmts.json
-utils/prompts.json
+src/prompts.json
