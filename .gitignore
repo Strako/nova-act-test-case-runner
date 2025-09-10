@@ -1,0 +1,6 @@
+**/temp-session/**
+env/lib/**
+.env
+**/.env
+**/propmts.json
+utils/prompts.json
