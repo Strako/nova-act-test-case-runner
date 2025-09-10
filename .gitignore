@@ -3,3 +3,4 @@ env/lib/**
 .env
 **/.env
 src/prompts.json
+.vscode/
