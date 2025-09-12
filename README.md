@@ -97,6 +97,24 @@ mv src/propmts_example.json src/prompts.json
 
 ## 🚀 Usage
 
+### Prerequisites for AWS Integration
+
+The application now integrates with AWS Secrets Manager for secure credential management. Ensure you have:
+
+1. **AWS Credentials configured** (via AWS CLI, environment variables, or IAM roles)
+2. **Access to AWS Secrets Manager** in the `us-east-2` region
+3. **A secret named `mach9_user`** containing user credentials in JSON format:
+   ```json
+   {
+     "mach9_user": {
+       "mail": "user@example.com",
+       "password": "userpassword"
+     }
+   }
+   ```
+
+### Running the Application
+
 Navigate to the `src` directory and run the main script:
 
 ```bash
@@ -134,12 +152,15 @@ src/
 ├── prompts.json           # Test cases configuration (rename from propmts_example.json)
 ├── propmts_example.json   # Example test cases template
 ├── requirements.txt       # Python dependencies
+├── classes/
+│   ├── __init__.py
+│   └── classes.py         # Pydantic models and TypedDict definitions
 ├── constants/
 │   ├── __init__.py
 │   └── constants.py       # Application constants and messages
 ├── utils/
 │   ├── __init__.py
-│   └── nova_utils.py      # NovaAct utility functions
+│   └── nova_utils.py      # NovaAct utility functions and AWS integration
 └── temp-session/          # Browser session data (auto-created)
 ```
 
@@ -153,8 +174,22 @@ The `prompts.json` file defines your test cases with the following structure:
     {
       "route": "/welcome",
       "prompts": [
-        "Given: El usuario hace click en el botón Jugar, en caso de error retorna un error",
-        "When: El usuario accede al juego correctamente y se carga la interfaz del memorama"
+        {
+          "step": "Click on the login button",
+          "type": "none"
+        },
+        {
+          "step": "Fill in the email field",
+          "type": "input"
+        },
+        {
+          "step": "Fill in the password field",
+          "type": "input"
+        },
+        {
+          "step": "Click submit and verify successful login",
+          "type": "none"
+        }
       ]
     }
   ]
@@ -165,11 +200,30 @@ The `prompts.json` file defines your test cases with the following structure:
 
 - **`test_cases`**: Array of test case objects
 - **`route`**: URL path to append to the base HOST_URL
-- **`prompts`**: Array of natural language instructions for the automation agent
+- **`prompts`**: Array of prompt objects with step instructions and input types
+
+### Prompt Object Structure
+
+- **`step`**: Natural language instruction for the automation agent
+- **`type`**: Defines the prompt behavior:
+  - `"none"`: Standard automation step without input
+  - `"input"`: Step that requires text input (uses AWS Secrets Manager credentials)
 
 ## 🛠️ Utilities
 
 ### `nova_utils.py` Functions
+
+#### `get_secret() -> str`
+
+- Retrieves user credentials from AWS Secrets Manager
+- Uses boto3 to connect to the region you have configured inside **`~/.aws/config`**
+- Returns secret string containing user authentication data
+
+#### `execute_input_step(nova: NovaAct, input: str) -> None`
+
+- Handles text input automation for form fields
+- Clears existing field content and types new input
+- Uses keyboard shortcuts for selection and deletion
 
 #### `execute_step(nova: NovaAct, prompt: str) -> TestResult`
 
@@ -177,9 +231,11 @@ The `prompts.json` file defines your test cases with the following structure:
 - Validates the response using Pydantic models
 - Returns a `TestResult` object with success status and error details
 
-#### `run_test_case(nova: NovaAct, prompts: list[str]) -> str`
+#### `run_test_case(nova: NovaAct, prompts: list[Prompt], input_list: list[str]) -> str`
 
 - Runs a complete test case with multiple prompts
+- Handles both standard steps and input steps
+- Uses AWS credentials for input fields when `type: "input"`
 - Stops execution on first failure
 - Returns success message or error details
 
@@ -188,6 +244,18 @@ The `prompts.json` file defines your test cases with the following structure:
 - Opens a browser session for manual interaction
 - Useful for login processes or manual testing
 - Waits for user input before closing
+
+### `classes.py` Models
+
+#### `TestResult(BaseModel)`
+
+- Pydantic model for test execution results
+- Fields: `test_passed: bool`, `error: Optional[str]`
+
+#### `Prompt(TypedDict)`
+
+- Type definition for prompt objects in JSON configuration
+- Fields: `step: str`, `type: Literal["input", "none"]`
 
 ### `constants.py`
 
@@ -202,6 +270,7 @@ Contains all application constants including:
 - **`python-dotenv`**: Environment variable management
 - **`pydantic`**: Data validation and parsing
 - **`nova-act`**: Browser automation framework
+- **`boto3`**: AWS SDK for Python (Secrets Manager integration)
 
 ## 🐛 Troubleshooting
 
@@ -210,6 +279,10 @@ Contains all application constants including:
 1. **"prompts.json not found"**: Make sure to rename `propmts_example.json` to `prompts.json`
 2. **Import errors**: Ensure virtual environment is activated and dependencies are installed
 3. **NovaAct API errors**: Verify your API key in the `.env` file
+4. **AWS Secrets Manager errors**: Check your AWS credentials and region configuration
+5. **Missing import error for `get_secret`**: Add the import in `main.py`: `from utils.nova_utils import get_secret`
+6. **Keyboard shortcut issues**: The app uses macOS shortcuts (`Meta+A`, `Backspace`) - may need adjustment for other OS
+7. **JSON structure errors**: Ensure prompts follow the new object format with `step` and `type` fields
 
 ### Error Messages
 
