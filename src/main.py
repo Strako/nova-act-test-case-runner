@@ -6,9 +6,19 @@ from constants.constants import PROMPTS_FILE_ERROR, EMPTY_PROMPTS_ARRAY, UNKNOWN
 from utils.nova_utils import run_test_case, simple_browse
 from nova_act import NovaAct
 
+
 load_dotenv()
 
+
+
+mach0_user = json.loads(get_secret())["mach9_user"]
+
 base_url = os.getenv("HOST_URL")
+user_mail = mach0_user["mail"]
+user_password = mach0_user["password"]
+
+input_list = [user_mail,user_password]
+
 temp_folder = "./temp-session"
 os.makedirs(temp_folder, exist_ok=True)
 try:
@@ -34,7 +44,7 @@ def main(record: bool):
             clone_user_data_dir=True,
             record_video=record
         ) as nova:
-            result = run_test_case(nova, test_case["prompts"])
+            result = run_test_case(nova, test_case["prompts"], input_list)
             print(result)
 
 if __name__ == "__main__":

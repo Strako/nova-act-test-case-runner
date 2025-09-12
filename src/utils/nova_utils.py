@@ -1,11 +1,34 @@
-from typing import Optional
-from pydantic import BaseModel
 from nova_act import ActAgentError, NovaAct
+from classes.classes import TestResult, Prompt
 from constants.constants import *
+import boto3
+from botocore.exceptions import ClientError
 
-class TestResult(BaseModel):
-    test_passed: bool
-    error: Optional[str] = None
+def get_secret():
+
+    secret_name = "mach9_user"
+    region_name = "us-east-2"
+
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        raise e
+    
+    return get_secret_value_response['SecretString']
+
+def execute_input_step(nova: NovaAct, input:str):
+            nova.page.keyboard.press(SELECT_ALL) 
+            nova.page.keyboard.press(DELETE_KEY)
+            nova.page.keyboard.type(input)
+
 
 def execute_step(nova: NovaAct, prompt: str) -> TestResult:
     """
@@ -30,12 +53,22 @@ def execute_step(nova: NovaAct, prompt: str) -> TestResult:
     return parsed_step
 
 
-def run_test_case(nova: NovaAct, prompts: list[str]) -> str:
+def run_test_case(nova: NovaAct, prompts: list[Prompt], input_list: list[str]) -> str:
     """
     Run a series of prompts in NovaAct and return an assertion.
     """
+    input_idx = 0
+
     for prompt in prompts:
-        result = execute_step(nova, prompt)
+        
+        if prompt["type"] == "input":
+            result = execute_step(nova, prompt["step"])
+            execute_input_step(nova, input_list[input_idx])
+            input_idx += 1
+            if not result.test_passed:
+                return f"{STEP_FAILED} {result.error}"
+            
+        result = execute_step(nova, prompt["step"])
         if not result.test_passed:
             return f"{STEP_FAILED} {result.error}"
 

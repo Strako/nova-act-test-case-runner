@@ -9,7 +9,9 @@ from .constants import (
     SUCCESS_TEST_CASE,
     PROMPTS_FILE_ERROR,
     EMPTY_PROMPTS_ARRAY,
-    UNKNOWN_ARGUMENT
+    UNKNOWN_ARGUMENT,
+    SELECT_ALL,
+    DELETE_KEY
 )
 
 __all__ = [
@@ -23,5 +25,7 @@ __all__ = [
     "SUCCESS_TEST_CASE",
     "PROMPTS_FILE_ERROR",
     "EMPTY_PROMPTS_ARRAY",
-    "UNKNOWN_ARGUMENT"
+    "UNKNOWN_ARGUMENT",
+    "SELECT_ALL",
+    "DELETE_KEY"
 ]
