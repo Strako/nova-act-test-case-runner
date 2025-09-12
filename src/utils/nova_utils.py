@@ -4,9 +4,8 @@ from constants.constants import *
 import boto3
 from botocore.exceptions import ClientError
 
-def get_secret():
+def get_secret(secret_name:str):
 
-    secret_name = "mach9_user"
     region_name = "us-east-2"
 
     session = boto3.session.Session()

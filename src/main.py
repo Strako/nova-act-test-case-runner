@@ -3,17 +3,17 @@ import sys
 import json
 from dotenv import load_dotenv
 from constants.constants import PROMPTS_FILE_ERROR, EMPTY_PROMPTS_ARRAY, UNKNOWN_ARGUMENT
-from utils.nova_utils import run_test_case, simple_browse
+from utils.nova_utils import get_secret, run_test_case, simple_browse
 from nova_act import NovaAct
 
 
 load_dotenv()
-
-
-
-mach0_user = json.loads(get_secret())["mach9_user"]
-
 base_url = os.getenv("HOST_URL")
+secret_name = os.getenv("SECRET_NAME")
+
+mach0_user = json.loads(get_secret(secret_name))["mach9_user"]
+
+
 user_mail = mach0_user["mail"]
 user_password = mach0_user["password"]
 
