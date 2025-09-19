@@ -59,6 +59,7 @@ def run_test_case(nova: NovaAct, prompts: list[Prompt], input_list: list[str]) -
     input_idx = 0
 
     for prompt in prompts:
+        print(prompt)
         
         if prompt["type"] == "input":
             result = execute_step(nova, prompt["step"])

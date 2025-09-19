@@ -3,6 +3,7 @@ import sys
 import json
 from dotenv import load_dotenv
 from constants.constants import PROMPTS_FILE_ERROR, EMPTY_PROMPTS_ARRAY, UNKNOWN_ARGUMENT
+from utils.export_results import export_results_to_excel
 from utils.nova_utils import get_secret, run_test_case, simple_browse
 from nova_act import NovaAct
 
@@ -10,17 +11,16 @@ from nova_act import NovaAct
 load_dotenv()
 base_url = os.getenv("HOST_URL")
 secret_name = os.getenv("SECRET_NAME")
-
 mach0_user = json.loads(get_secret(secret_name))["mach9_user"]
-
-
 user_mail = mach0_user["mail"]
 user_password = mach0_user["password"]
 
 input_list = [user_mail,user_password]
+results_array = []
 
 temp_folder = "./temp-session"
 os.makedirs(temp_folder, exist_ok=True)
+
 try:
     with open("prompts.json", "r", encoding="utf-8") as f:
         prompts_data = json.load(f)
@@ -46,6 +46,14 @@ def main(record: bool):
         ) as nova:
             result = run_test_case(nova, test_case["prompts"], input_list)
             print(result)
+            row = {
+                'id': test_case["id"],
+                'description': test_case["description"],
+                'result': result
+            }
+            results_array.append(row)
+
+    export_results_to_excel(results_array)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

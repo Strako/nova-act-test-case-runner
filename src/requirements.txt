@@ -2,3 +2,4 @@ python-dotenv
 pydantic
 nova-act
 boto3
+openpyxl
