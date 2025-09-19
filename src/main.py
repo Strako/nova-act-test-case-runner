@@ -16,6 +16,8 @@ user_mail = mach0_user["mail"]
 user_password = mach0_user["password"]
 
 input_list = [user_mail,user_password]
+print(input_list)
+
 results_array = []
 
 temp_folder = "./temp-session"
@@ -47,10 +49,16 @@ def main(record: bool):
             result = run_test_case(nova, test_case["prompts"], input_list)
             print(result)
             row = {
-                'id': test_case["id"],
-                'description': test_case["description"],
-                'result': result
-            }
+                "session_id": result.sesion_id,
+                "act_id": result.act_id,
+                "test_case_id": test_case["id"],
+                "num_steps_executed": result.num_steps_executed,
+                "description": test_case["description"],
+                "prompt": result.prompt,
+                "test_passed": result.parsed_step.test_passed,
+                "error": result.parsed_step.error
+                }
+
             results_array.append(row)
 
     export_results_to_excel(results_array)

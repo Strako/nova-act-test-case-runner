@@ -1,5 +1,5 @@
 from nova_act import ActAgentError, NovaAct
-from classes.classes import TestResult, Prompt
+from classes.classes import StepResultArray, TestResult, Prompt
 from constants.constants import *
 import boto3
 from botocore.exceptions import ClientError
@@ -29,27 +29,42 @@ def execute_input_step(nova: NovaAct, input:str):
             nova.page.keyboard.type(input)
 
 
-def execute_step(nova: NovaAct, prompt: str) -> TestResult:
+def execute_step(nova: NovaAct, step: str) -> StepResultArray:
     """
     Execute a single step in NovaAct and validate the response.
     """
     try:
-        step = nova.act(prompt, schema=TestResult.model_json_schema())
+        step = nova.act(step, schema=TestResult.model_json_schema())
+        sesion_id = step.metadata.session_id
+        act_id = step.metadata.act_id
+        num_steps_executed = step.metadata.num_steps_executed
+        prompt_text = step.metadata.prompt
     except ActAgentError as e:
-        print(f"{STEP_ERROR} '{prompt}': {e}")
-        return TestResult(test_passed=False, error=str(e))
-
-    if not step.parsed_response:
-        print(f"{NO_STEP_RESPONSE} '{prompt}'")
-        return TestResult(test_passed=False, error=NO_AGENT_RESPONSE)
-
+        print(f"{STEP_ERROR} '{step}': {e}")
+        return StepResultArray(
+            parsed_step=TestResult(test_passed=False, error=e.message),
+            sesion_id= e.metadata.session_id,
+            act_id=e.metadata.act_id,
+            num_steps_executed=e.metadata.num_steps_executed,
+            prompt=step,
+        )
+    """     if not step.parsed_response:
+        print(f"{NO_STEP_RESPONSE} '{step}'")
+        return TestResult(test_passed=False, error=NO_AGENT_RESPONSE) """
     try:
         parsed_step = TestResult.model_validate(step.parsed_response)
     except Exception as e:
-        print(f"{ASSERT_STEP_ERROR} '{prompt}': {e}")
-        return TestResult(test_passed=False, error=f"{ASSERT_ERROR} {e}")
+        print(f"{ASSERT_STEP_ERROR} '{step}': {e}")
+        parsed_step = TestResult(test_passed=False, error=f"{ASSERT_ERROR} {e}")
 
-    return parsed_step
+
+    print(step)
+    return StepResultArray(
+            parsed_step=parsed_step,
+            sesion_id=sesion_id,
+            act_id=act_id,
+            num_steps_executed=num_steps_executed,
+            prompt=prompt_text)
 
 
 def run_test_case(nova: NovaAct, prompts: list[Prompt], input_list: list[str]) -> str:
@@ -62,17 +77,21 @@ def run_test_case(nova: NovaAct, prompts: list[Prompt], input_list: list[str]) -
         print(prompt)
         
         if prompt["type"] == "input":
-            result = execute_step(nova, prompt["step"])
+            act_result = execute_step(nova, prompt["step"])
             execute_input_step(nova, input_list[input_idx])
             input_idx += 1
-            if not result.test_passed:
-                return f"{STEP_FAILED} {result.error}"
+            if not act_result.parsed_step.test_passed:
+                print(f"{STEP_FAILED} {act_result.parsed_step.error}")
+                return act_result
             
-        result = execute_step(nova, prompt["step"])
-        if not result.test_passed:
-            return f"{STEP_FAILED} {result.error}"
-
-    return SUCCESS_TEST_CASE
+        act_result = execute_step(nova, prompt["step"])
+        if not act_result.parsed_step.test_passed:
+            
+            print(f"{STEP_FAILED} {act_result.parsed_step.error}")
+            return act_result
+    
+    print(SUCCESS_TEST_CASE)
+    return act_result
 
 
 def simple_browse(starting_page: str, temp_folder: str) -> None:
