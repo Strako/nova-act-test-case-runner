@@ -1,0 +1,8 @@
+**/temp-session/**
+**/temp/*
+!**/temp/.gitkeep
+env/lib/**
+.env
+**/.env
+src/prompts.json
+.vscode/
