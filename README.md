@@ -8,8 +8,66 @@
 
 A Python-based web automation testing framework using NovaAct for browser automation and testing workflows.
 
+## 🚀 Deployment to AWS Lambda
+
+This project includes a makefile that automates the packaging process for AWS Lambda deployment. The makefile creates a deployment package that includes all necessary dependencies while excluding development files.
+
+### What the Makefile Does
+
+The makefile provides three main commands:
+
+#### `make build` (or just `make`)
+
+- **Installs dependencies**: Downloads all packages from `requirements.txt` into a `./libraries` directory
+- **Creates base package**: Zips all dependencies from the libraries folder
+- **Adds source code**: Includes all project files except excluded ones (main.py, makefile, and libraries folder)
+- **Generates deployment package**: Creates `my_deployment_package.zip` ready for Lambda upload
+
+#### `make clean`
+
+- **Removes build artifacts**: Deletes the `./libraries` directory
+- **Cleans deployment package**: Removes the generated `my_deployment_package.zip` file
+
+#### Files Excluded from Lambda Package
+
+The makefile automatically excludes these files from the deployment package:
+
+- `main.py` (local development entry point)
+- `makefile` (build script)
+- `./libraries/*` (temporary dependency folder)
+
+### Lambda Deployment Steps
+
+1. **Navigate to the src directory**:
+
+   ```bash
+   cd src
+   ```
+
+2. **Build the deployment package**:
+
+   ```bash
+   make build
+   ```
+
+3. **Upload to AWS Lambda**:
+
+   - Use the generated `my_deployment_package.zip` file
+   - Set the Lambda handler to `lambda_function.lambda_handler`
+   - Configure environment variables as needed
+
+4. **Clean up build files** (optional):
+   ```bash
+   make clean
+   ```
+
+### Lambda Function Entry Point
+
+The project includes `lambda_function.py` as the entry point for AWS Lambda execution, separate from the local development `main.py` file.
+
 ## 📋 Table of Contents
 
+- [Deployment to AWS Lambda](#deployment-to-aws-lambda)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Configuration](#configuration)
