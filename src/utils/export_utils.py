@@ -3,6 +3,7 @@ import json
 import glob
 from typing import List, Dict, Any
 
+logs_directory = os.getenv("LOGS_DIRECTORY")
 
 def _extract_raw_program_body_from_item(item: Dict[str, Any]) -> str | None:
     """Extract rawProgramBody from a single JSON item."""
@@ -41,7 +42,7 @@ def _process_json_file(json_file: str) -> List[str]:
 
 def _get_raw_program_bodies_for_session(session_id: str) -> List[str]:
     """Get all rawProgramBody strings for a given session_id."""
-    temp_folder_pattern = f"./temp/{session_id}"
+    temp_folder_pattern = f"{logs_directory}{session_id}"
     raw_program_bodies = []
     
     if not (os.path.exists(temp_folder_pattern) and os.path.isdir(temp_folder_pattern)):
