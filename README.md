@@ -8,74 +8,21 @@
 
 A Python-based web automation testing framework using NovaAct for browser automation and testing workflows.
 
-## 🚀 Deployment to AWS Lambda
-
-This project includes a makefile that automates the packaging process for AWS Lambda deployment. The makefile creates a deployment package that includes all necessary dependencies while excluding development files.
-
-### What the Makefile Does
-
-The makefile provides three main commands:
-
-#### `make build` (or just `make`)
-
-- **Installs dependencies**: Downloads all packages from `requirements.txt` into a `./libraries` directory
-- **Creates base package**: Zips all dependencies from the libraries folder
-- **Adds source code**: Includes all project files except excluded ones (main.py, makefile, and libraries folder)
-- **Generates deployment package**: Creates `my_deployment_package.zip` ready for Lambda upload
-
-#### `make clean`
-
-- **Removes build artifacts**: Deletes the `./libraries` directory
-- **Cleans deployment package**: Removes the generated `my_deployment_package.zip` file
-
-#### Files Excluded from Lambda Package
-
-The makefile automatically excludes these files from the deployment package:
-
-- `main.py` (local development entry point)
-- `makefile` (build script)
-- `./libraries/*` (temporary dependency folder)
-
-### Lambda Deployment Steps
-
-1. **Navigate to the src directory**:
-
-   ```bash
-   cd src
-   ```
-
-2. **Build the deployment package**:
-
-   ```bash
-   make build
-   ```
-
-3. **Upload to AWS Lambda**:
-
-   - Use the generated `my_deployment_package.zip` file
-   - Set the Lambda handler to `lambda_function.lambda_handler`
-   - Configure environment variables as needed
-
-4. **Clean up build files** (optional):
-   ```bash
-   make clean
-   ```
-
-### Lambda Function Entry Point
-
-The project includes `lambda_function.py` as the entry point for AWS Lambda execution, separate from the local development `main.py` file.
-
 ## 📋 Table of Contents
 
-- [Deployment to AWS Lambda](#deployment-to-aws-lambda)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
-- [Project Structure](#project-structure)
 - [JSON Configuration](#json-configuration)
+- [Results Export and Chain of Thought Capture](#results-export-and-chain-of-thought-capture)
+- [Understanding the Results](#understanding-the-results)
+- [Deployment to AWS Lambda](#deployment-to-aws-lambda)
+- [Project Structure](#project-structure)
 - [Utilities](#utilities)
-- [Arguments](#arguments)
+- [Dependencies](#dependencies)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 
 ## 🔧 Prerequisites
 
@@ -205,32 +152,6 @@ python3.11 main.py record
 python3.11 main.py login
 ```
 
-## 📁 Project Structure
-
-```
-src/
-├── .env                    # Environment variables
-├── main.py                 # Main application entry point
-├── prompts.json           # Test cases configuration (rename from propmts_example.json)
-├── propmts_example.json   # Example test cases template
-├── requirements.txt       # Python dependencies
-├── classes/
-│   ├── __init__.py
-│   └── classes.py         # Pydantic models and TypedDict definitions
-├── constants/
-│   ├── __init__.py
-│   └── constants.py       # Application constants and messages
-├── utils/
-│   ├── __init__.py
-│   ├── nova_utils.py      # NovaAct utility functions and AWS integration
-│   ├── export_utils.py    # 🆕 Chain of thought processing utilities
-│   └── export_results.py  # 🆕 Enhanced Excel export with reasoning data
-├── temp-session/          # Browser session data (auto-created)
-├── temp/                  # 🆕 NovaAct execution logs and chain of thought data
-│   └── {session_id}/      # 🆕 Session-specific folders containing JSON files
-└── results.xlsx           # 🆕 Generated Excel file with test results and reasoning
-```
-
 ## 📝 JSON Configuration
 
 The `prompts.json` file defines your test cases with the following structure:
@@ -340,6 +261,130 @@ The exported Excel file now contains these columns:
 | `test_passed`        | Boolean indicating test success                        |
 | `error`              | Error message if test failed                           |
 | **`rawProgramBody`** | **🆕 Complete chain of thought and reasoning process** |
+
+## 📈 Understanding the Results
+
+### Analyzing Chain of Thought Data
+
+The `rawProgramBody` column in `results.xlsx` provides valuable insights:
+
+- **Decision Making**: See exactly how NovaAct reasoned through each step
+- **Action Mapping**: Understand which UI elements were targeted and why
+- **Error Analysis**: When tests fail, review the reasoning to identify issues
+- **Test Optimization**: Use insights to improve prompt clarity and test reliability
+
+### Data Locations
+
+- **Test Results**: `results.xlsx` (generated after each run)
+- **Raw Logs**: `./temp/{session_id}/` (detailed JSON files with complete execution data)
+- **Session Data**: `./temp-session/` (browser session information)
+
+## 🚀 Deployment to AWS Lambda
+
+This project includes a makefile that automates the packaging process for AWS Lambda deployment. The makefile creates a deployment package that includes all necessary dependencies while excluding development files.
+
+### Makefile
+
+The makefile provides three main commands:
+
+#### `make build` (or just `make`)
+
+- **Installs dependencies**: Downloads all packages from `requirements.txt` into a `./libraries` directory
+- **Creates base package**: Zips all dependencies from the libraries folder
+- **Adds source code**: Includes all project files except excluded ones (main.py, makefile, and libraries folder)
+- **Generates deployment package**: Creates `my_deployment_package.zip` ready for Lambda upload
+
+#### `make clean`
+
+- **Removes build artifacts**: Deletes the `./libraries` directory
+- **Cleans deployment package**: Removes the generated `my_deployment_package.zip` file
+
+#### Files Excluded from Lambda Package
+
+The makefile automatically excludes these files from the deployment package:
+
+- `main.py` (local development entry point)
+- `makefile` (build script)
+- `./libraries/*` (temporary dependency folder)
+
+### Lambda Deployment Steps
+
+1. **Navigate to the src directory**:
+
+   ```bash
+   cd src
+   ```
+
+2. **Build the deployment package**:
+
+   ```bash
+   make build
+   ```
+
+3. **Upload to AWS Lambda**:
+
+   - Use the generated `my_deployment_package.zip` file
+   - Set the Lambda handler to `lambda_function.lambda_handler`
+   - Configure environment variables as needed
+
+4. **Clean up build files** (optional):
+   ```bash
+   make clean
+   ```
+
+### Lambda Function Entry Point
+
+The project includes `lambda_function.py` as the entry point for AWS Lambda execution, separate from the local development `main.py` file.
+
+#### Event Structure
+
+When invoking the Lambda function, the event should contain an `action` field that determines the execution mode:
+
+```json
+{
+  "action": "login" | "record" | "default"
+}
+```
+
+**Action Types:**
+
+- `"login"` - Opens a browser session for manual login/browsing
+- `"record"` - Runs test cases with video recording enabled
+- `"default"` - Runs test cases without video recording (same as no argument in local execution)
+
+**Example Lambda Event:**
+
+```json
+{
+  "action": "record"
+}
+```
+
+## � Project Structure
+
+```
+src/
+├── .env                    # Environment variables
+├── main.py                 # Main application entry point
+├── prompts.json           # Test cases configuration (rename from propmts_example.json)
+├── propmts_example.json   # Example test cases template
+├── requirements.txt       # Python dependencies
+├── classes/
+│   ├── __init__.py
+│   └── classes.py         # Pydantic models and TypedDict definitions
+├── constants/
+│   ├── __init__.py
+│   └── constants.py       # Application constants and messages
+├── utils/
+│   ├── __init__.py
+│   ├── nova_utils.py      # NovaAct utility functions and AWS integration
+│   ├── export_utils.py    # 🆕 Chain of thought processing utilities
+│   └── export_results.py  # 🆕 Enhanced Excel export with reasoning data
+├── temp-session/          # Browser session data (auto-created)
+├── temp/                  # 🆕 NovaAct execution logs and chain of thought data
+│   └── {session_id}/      # 🆕 Session-specific folders containing JSON files
+└── results.xlsx           # 🆕 Generated Excel file with test results and reasoning
+```
 
 ## 🛠️ Utilities
 
@@ -460,49 +505,6 @@ Contains all application constants including:
 - **`openpyxl`**: Excel file creation and manipulation
 - **`glob`**: File pattern matching for JSON processing
 - **`json`**: JSON data parsing and processing
-
-## 🆕 Recent Updates
-
-### Version 2.0 - Chain of Thought Integration
-
-**New Features:**
-
-- ✅ **Chain of Thought Capture**: Automatic extraction of NovaAct's reasoning process
-- ✅ **Enhanced Excel Export**: New `rawProgramBody` column with complete decision-making data
-- ✅ **Session-based Processing**: Improved data organization using session identifiers
-- ✅ **Modular Architecture**: Separated export logic into dedicated utility modules
-- ✅ **Error Handling**: Robust processing of JSON files with proper error reporting
-
-**Technical Improvements:**
-
-- 🔧 **Refactored Export System**: Split into `export_utils.py` and `export_results.py`
-- 🔧 **Reduced Cognitive Complexity**: Functions broken down for better maintainability
-- 🔧 **Type Hints**: Full type annotation support for better IDE integration
-- 🔧 **Path Resolution**: Flexible path handling for different deployment scenarios
-
-**File Changes:**
-
-- 📝 **main.py**: Enhanced to capture session data and integrate with new export system
-- 📝 **utils/export_results.py**: Updated to use chain of thought processing
-- 📝 **utils/export_utils.py**: New module with specialized processing functions
-- 📝 **results.xlsx**: Now includes comprehensive reasoning data in `rawProgramBody` column
-
-## 📈 Understanding the Results
-
-### Analyzing Chain of Thought Data
-
-The `rawProgramBody` column in `results.xlsx` provides valuable insights:
-
-- **Decision Making**: See exactly how NovaAct reasoned through each step
-- **Action Mapping**: Understand which UI elements were targeted and why
-- **Error Analysis**: When tests fail, review the reasoning to identify issues
-- **Test Optimization**: Use insights to improve prompt clarity and test reliability
-
-### Data Locations
-
-- **Test Results**: `results.xlsx` (generated after each run)
-- **Raw Logs**: `./temp/{session_id}/` (detailed JSON files with complete execution data)
-- **Session Data**: `./temp-session/` (browser session information)
 
 ## 🐛 Troubleshooting
 
