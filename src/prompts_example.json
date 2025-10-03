@@ -1,0 +1,132 @@
+{
+  "test_platform": "example_platform",
+  "test_cases": [
+    {
+      "id": 1,
+      "route": "https://example.com/login",
+      "description": "Validate login flow from credential entry to welcome message display in header",
+      "prompts": [
+        {
+          "step": "User clicks on 'Email' field",
+          "type": "input"
+        },
+        {
+          "step": "User clicks on 'Password' field",
+          "type": "input"
+        },
+        {
+          "step": "User clicks on 'Sign In' button",
+          "type": "none"
+        },
+        {
+          "step": "Header should contain the text: 'Welcome, John Doe!'",
+          "type": "none"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "route": "https://example.com/dashboard",
+      "description": "Verify user can navigate to dashboard and view main content",
+      "prompts": [
+        {
+          "step": "User clicks on 'Dashboard' menu item",
+          "type": "none"
+        },
+        {
+          "step": "Dashboard page loads successfully with main content visible",
+          "type": "none"
+        },
+        {
+          "step": "User can see the statistics widget on the dashboard",
+          "type": "none"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "route": "https://example.com/profile",
+      "description": "Test profile page functionality and form validation",
+      "prompts": [
+        {
+          "step": "Profile form is displayed with current user information",
+          "type": "none"
+        },
+        {
+          "step": "User clicks on 'First Name' field",
+          "type": "input"
+        },
+        {
+          "step": "User clicks on 'Last Name' field",
+          "type": "input"
+        },
+        {
+          "step": "User clicks on 'Save Changes' button",
+          "type": "none"
+        },
+        {
+          "step": "Success message 'Profile updated successfully' is displayed",
+          "type": "none"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "route": "https://example.com/search",
+      "description": "Test search functionality with filters and results validation",
+      "prompts": [
+        {
+          "step": "User clicks on search input field",
+          "type": "input"
+        },
+        {
+          "step": "User selects 'Category' dropdown filter",
+          "type": "none"
+        },
+        {
+          "step": "User clicks on 'Search' button",
+          "type": "none"
+        },
+        {
+          "step": "Search results are displayed with at least one result",
+          "type": "none"
+        },
+        {
+          "step": "Results show relevant items matching the search criteria",
+          "type": "none"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "route": "https://example.com/checkout",
+      "description": "Validate e-commerce checkout process with form validation",
+      "prompts": [
+        {
+          "step": "Shopping cart displays selected items correctly",
+          "type": "none"
+        },
+        {
+          "step": "User clicks on 'Billing Address' field",
+          "type": "input"
+        },
+        {
+          "step": "User clicks on 'Credit Card Number' field",
+          "type": "input"
+        },
+        {
+          "step": "User clicks on 'CVV' field",
+          "type": "input"
+        },
+        {
+          "step": "User clicks on 'Place Order' button",
+          "type": "none"
+        },
+        {
+          "step": "Order confirmation page is displayed with order number",
+          "type": "none"
+        }
+      ]
+    }
+  ]
+}
