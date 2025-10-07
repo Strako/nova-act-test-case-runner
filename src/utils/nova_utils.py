@@ -78,14 +78,19 @@ def run_test_case(nova: NovaAct, prompts: list[Prompt], input_list: list[str]) -
     """
     Run a series of prompts in NovaAct and return an assertion.
     """
-    input_idx = 0
 
     for prompt in prompts:
         
-        if prompt["type"] == "input":
+        if prompt["type"] == "mail":
             act_result = execute_step(nova, prompt["step"])
-            execute_input_step(nova, input_list[input_idx])
-            input_idx += 1
+            execute_input_step(nova, input_list[0])
+            if not act_result.parsed_step.test_passed:
+                print(f"{STEP_FAILED} {act_result.parsed_step.error}")
+                return act_result
+
+        if prompt["type"] == "password":
+            act_result = execute_step(nova, prompt["step"])
+            execute_input_step(nova, input_list[1])
             if not act_result.parsed_step.test_passed:
                 print(f"{STEP_FAILED} {act_result.parsed_step.error}")
                 return act_result
